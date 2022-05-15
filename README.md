@@ -1,4 +1,4 @@
-# simple-confetti-typer
+# Simple Confetti Typer
 A text input that shoots confetti whenever you type something. Inspired by the Discord Party Mode. It encourages you to type your text without thinking too hard about it or changing anything so you can focus on getting your ideas written down. It is intended to prevent writers' block.
 
 ## Usage
