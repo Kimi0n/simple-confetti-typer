@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <title>Document</title>
+
+    <style>
+        #container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+            width: 80%;
+        }
+
+        #sizer {
+            font-size: 16px;
+            display: inline-block;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        
+        <div class="input-field">
+            <input type="text" id="confettiInput" />
+            <label for="confettiInput">Type something here and press enter to save your written text...</label>
+        </div>
+        <div id="combo-view">Highscore: 0</div>
+        <span id="sizer"></span>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        const input = document.getElementById("confettiInput");
+        const startingPoint = 0.1; // Bound to css width (Start at 10%)
+        const y = 0.45;
+        const comboBreakerTimeInMs = 1000;
+
+        let timeSinceLastCharacterEntered = Date.now();
+        let combo = 0;
+        let highScore = 0;
+
+        // Check periodically if the user has entered a character and break combo after a certain amount of time.
+        let intervalId = setInterval(function() {
+            if (Date.now() - timeSinceLastCharacterEntered > comboBreakerTimeInMs) {
+                highScore = Math.max(highScore, combo);
+                combo = 0;
+                updateComboView(combo, highScore);
+            }
+        }, 200);
+
+        // Shoots confetti everytime a character is input.
+        input.addEventListener('keyup', e => {
+            if(e.key == "Enter") {
+                saveAsFile(e.target.value);
+            }
+
+            if(textHasChanged(e.key)) {
+                timeSinceLastCharacterEntered = Date.now();
+                combo++;
+                const posInPx = calculateCursorPosition(e.target.value, e.target.selectionStart);
+                let x = convertPixelToPos(posInPx);
+
+                if(x > 0.9) { // Bound to css width (end at 90%)
+                    x = 0.9;
+                }
+
+                confetti({
+                    "particleCount": 6,
+                    "gravity": 3.0,
+                    "spread": 60,
+                    "startVelocity": 30,
+                    "scalar": 1.2,
+                    "origin": {
+                        "x": x,
+                        "y": y
+                    },
+                });
+            } else {
+                highScore = Math.max(highScore, combo);
+                combo = 0;
+            }
+
+            updateComboView(combo, highScore);
+        });
+
+        // Checks if the text inside the text input has changed.
+        function textHasChanged(input) {
+            if(input == "ArrowLeft" || input == "ArrowRight" ||
+            input == "ArrowUp" || input == "ArrowDown" || input == "Backspace") {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        // Calculates where the text input puts the text cursor.
+        function calculateCursorPosition(textInput, cursorPos) {
+            const stringToCalculate = textInput.slice(0, cursorPos);
+
+            let sizer = document.getElementById("sizer");
+            sizer.innerHTML = stringToCalculate; // TODO: Might need to adjust the font size idk
+            return sizer.offsetWidth;
+        }
+
+        // Converts size of the text to a position on the page that the confetti function can work with.
+        function convertPixelToPos(posInPx) {
+            const widthOffsetValue = 0.8; //Width of element is 80%
+            return startingPoint + ((posInPx * widthOffsetValue) / input.offsetWidth);
+        }
+
+        // Saves the text input to a file.
+        function saveAsFile(text) {
+            let hiddenElement = document.createElement('a');
+            hiddenElement.href = 'data:attachment/text,' + encodeURI(text);
+            hiddenElement.target = '_blank';
+            hiddenElement.download = 'draft.txt';
+            hiddenElement.click();
+        }
+
+        function updateComboView(combo, highscore) {
+            let view = document.getElementById("combo-view");
+            if(combo > 0) {
+                view.innerHTML = `Combo: ${combo}, Highscore: ${highscore}`;
+            } else {
+                view.innerHTML = `Highscore: ${highscore}`;
+            }
+        }
+    </script>
+</body>
+</html>
