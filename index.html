@@ -107,7 +107,13 @@
             const stringToCalculate = textInput.slice(0, cursorPos);
 
             let sizer = document.getElementById("sizer");
+            const temp = sizer.innerHTML;
             sizer.innerHTML = stringToCalculate; // TODO: Might need to adjust the font size idk
+
+            if(sizer.offsetWidth / window.innerWidth > 0.8) {
+                sizer.innerHTML = temp;
+            }
+
             return sizer.offsetWidth;
         }
 
